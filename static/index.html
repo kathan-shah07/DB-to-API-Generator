@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>DB API Admin</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>DB API Admin</h1>
+        <div class="header-right">
+          <label>Admin API Key:
+            <input id="admin-key" placeholder="paste admin key" />
+          </label>
+          <button id="save-key">Save</button>
+          <span id="admin-status" style="margin-left:8px; font-size:0.9em; color:#444">(auth: unknown)</span>
+          <button id="admin-test" style="margin-left:8px">Test Auth</button>
+        </div>
+      </header>
+
+      <nav id="tabs">
+        <button data-tab="connectors" class="active">Connectors</button>
+        <button data-tab="schema">Schema Explorer</button>
+        <button data-tab="queries">Saved Queries</button>
+        <button data-tab="mappings">Mappings</button>
+        <button data-tab="api-keys">API Keys</button>
+        <button data-tab="logs">Logs</button>
+      </nav>
+
+      <main>
+        <section id="connectors" class="tabpanel">
+          <h2>Connectors</h2>
+          <form id="connector-form">
+            <input name="name" placeholder="name" required />
+            <input name="sqlalchemy_url" placeholder="sqlalchemy url" required />
+            <button type="submit">Add Connector</button>
+          </form>
+          <div id="connectors-list">Loading...</div>
+        </section>
+
+        <section id="schema" class="tabpanel hidden">
+          <h2>Schema Explorer</h2>
+          <div>
+            <select id="schema-connector"></select>
+            <button id="discover-btn">Discover</button>
+          </div>
+          <div id="schema-tables"></div>
+          <div id="schema-sample"></div>
+        </section>
+
+        <section id="queries" class="tabpanel hidden">
+          <h2>Saved Queries</h2>
+          <form id="query-form">
+            <select id="query-connector"></select>
+            <input name="name" placeholder="query name" required />
+            <textarea name="sql_text" placeholder="SQL or proc..." required></textarea>
+            <label><input type="checkbox" name="is_proc" /> is_proc</label>
+            <button type="submit">Save Query</button>
+            <button type="button" id="preview-query">Preview</button>
+          </form>
+          <div id="query-result"></div>
+          <div id="last-queries"></div>
+          <h3>Saved queries</h3>
+          <div id="queries-list">Loading queries...</div>
+        </section>
+
+        <section id="mappings" class="tabpanel hidden">
+          <h2>Mappings</h2>
+          <form id="mapping-form">
+            <select id="mapping-connector"></select>
+            <input id="mapping-query_id" placeholder="query id (or save a query first)" />
+            <input id="mapping-path" placeholder="/api/your/path" required />
+            <select id="mapping-method"><option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option></select>
+            <textarea id="mapping-params_json" placeholder='[ {"name":"id","in":"path","type":"string","required":true} ]'></textarea>
+            <label><input id="mapping-auth" type="checkbox" /> auth_required</label>
+            <button type="submit">Create Mapping</button>
+          </form>
+          <div id="mappings-list">Loading...</div>
+        </section>
+
+        <section id="api-keys" class="tabpanel hidden">
+          <h2>API Keys</h2>
+          <form id="apikey-form">
+            <select id="apikey-role"><option value="consumer">consumer</option><option value="admin">admin</option></select>
+            <button type="submit">Create API Key</button>
+          </form>
+          <div id="apikey-result"></div>
+        </section>
+
+        <section id="logs" class="tabpanel hidden">
+          <h2>Logs</h2>
+          <form id="logs-form">
+            <input id="logs-request-id" placeholder="request_id" />
+            <button type="submit">Get Log</button>
+          </form>
+          <pre id="log-result"></pre>
+        </section>
+      </main>
+
+      <div id="modal" class="hidden" style="display:none;" aria-hidden="true">
+        <div class="modal-inner" role="dialog" aria-modal="true">
+          <h3 id="modal-title">Test API</h3>
+          <div id="modal-body"></div>
+          <div class="modal-actions">
+            <button id="modal-run">Run</button>
+            <button id="modal-close">Close</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="toasts"></div>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
