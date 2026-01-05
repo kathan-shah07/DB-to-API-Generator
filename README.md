@@ -1,141 +1,78 @@
-DB_API - Minimal admin backend
-==============================
+# 🚀 DB-to-API Generator
 
-Overview
---------
-DB_API is a small admin backend (FastAPI) and a collection of helper modules that let you define connectors, queries, and runtime mappings backed by simple atomic JSON metadata files. The project provides both HTTP (FastAPI) endpoints and a headless execution path so tests can run even when FastAPI imports fail in some environments.
+**Transform your raw databases into secure, documented, and validated REST APIs in seconds.**
 
-This README documents the project purpose, the main files and scripts, how to run the app and tests on Windows PowerShell, configuration (metadata directory), and troubleshooting tips.
+DB-to-API Generator is a low-code platform built with **FastAPI** and **React** that allows developers to connect to multiple database types (MSSQL, PostgreSQL, MySQL, SQLite), define parameterized SQL queries, and deploy them as live HTTP endpoints without writing any backend code.
 
-Repository layout and file descriptions
--------------------------------------
-Top-level files and their purpose:
+---
 
-- `main.py` — FastAPI application exposing admin and runtime endpoints.
-- `storage.py` — Atomic JSON helpers used to persist metadata (connectors, queries, mappings, logs). Writes are atomic (tmp -> fsync -> replace).
-- `exec_query.py` — Query execution helpers (sqlite-first execution path and helpers to run parameterized queries).
-- `param_model.py` — Builds dynamic Pydantic models to validate mapping/param inputs at runtime.
-- `sql_utils.py` — SQL helper utilities used by query execution.
-- `DB.py`, `dbtest.py`, `discover.py` — assorted DB helpers and discovery/testing utilities used by scripts and tests.
-- `metrics.py` — Basic metrics collection utilities.
-- `rate_limit.py` — A small rate-limiting helper used by runtime endpoints.
-- `errors.py` — Centralized error types and helpers.
-- `storage.py` — (see above) metadata storage layer.
-- `test_connectors.py` — connector-related tests/helpers.
-- `requirements.txt` — pinned Python dependencies required to run and test the project.
-- `README.md` — this document.
-- `arch.MD` — architecture notes and design rationale (high level).
-- `run_ui.ps1` — convenience PowerShell script to run any local UI server (if present).
+## 📖 Complete Documentation
 
-Scripts and static assets
--------------------------
-- `scripts/create_admin_key.py` — helper that creates a one-time admin API token, stores a hash in metadata, and prints the plaintext token (save it securely).
-- `scripts/headless_e2e.py` — headless end-to-end runner that exercises core flows without importing FastAPI (useful for environments where FastAPI/Pydantic import-time issues occur).
-- `scripts/e2e_test.py` — full HTTP e2e test helper that starts uvicorn and runs the end-to-end flow over HTTP.
+Explore our specialized guides to get the most out of the platform:
 
-Static files (used by the optional UI):
-- `static/index.html`, `static/app.js`, `static/style.css` — minimal frontend assets served by the app when used.
+*   [**🛠 Installation Guide**](./INSTALLATION.md) - Step-by-step setup for Windows, macOS, and Linux.
+*   [**🏗 System Architecture**](./ARCHITECTURE.md) - Deep dive into how the dynamic route engine and storage layer work.
+*   [**🔍 Demo & Walkthrough**](./DEMO_GUIDE.md) - A full tutorial on connecting a database and creating your first API.
 
-Tests
------
-- `tests/test_integration_fastapi.py` — integration test that tries the TestClient (HTTP) path first and falls back to the headless flow if FastAPI/TestClient import fails. This ensures core logic is tested even when the HTTP stack can't be imported in the test environment.
+---
 
-Quick start (Windows PowerShell)
---------------------------------
+## ✨ Key Features
 
-1) Create and activate a virtual environment
+- **Multi-DB Support**: Native connectors for **Microsoft SQL Server**, **PostgreSQL**, **MySQL**, and **SQLite**.
+- **Dynamic Routing**: Deploy APIs like `/api/user/{id}` where `{id}` is validated and passed directly to your SQL.
+- **Smart Parameter Builder**: Auto-detects variables in your SQL and lets you define types (Int, String, Float, Bool) and locations (Path, Query, Body, Header).
+- **Security First**: 
+  - Integrated **Admin API Key** authentication (Bcrypt hashed).
+  - SQL Injection protection via SQLAlchemy parameter binding.
+  - Public/Private endpoint toggling.
+- **Live Lifecycle**: Deploy, Undeploy, or Delete endpoints in real-time without restarting the server.
+- **Atomic Persistence**: Configuration is stored in lightweight, version-control-friendly JSON files.
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-```
+---
 
-2) Install dependencies
+## ⚡ Quick Start (Windows)
 
-```powershell
-pip install -r requirements.txt
-```
+1.  **Initialize Environment**:
+    ```powershell
+    powershell -ExecutionPolicy Bypass -File .\init_env.ps1
+    ```
 
-3) Run the FastAPI app (development)
+2.  **Launch the Dashboard**:
+    ```powershell
+    powershell -ExecutionPolicy Bypass -File .\run_ui.ps1
+    ```
 
-```powershell
-# run with autoreload
-uvicorn main:app --reload
-```
+3.  **Login**: Copy the `ADMIN_TOKEN` printed in your terminal and paste it into the UI.
 
-Configuration: metadata directory
----------------------------------
-By default metadata files are written to a `metadata` directory in the project root. To run with an isolated metadata directory (recommended for tests and CI), set the `METADATA_DIR` environment variable. Example (PowerShell):
+---
+
+## 📁 Repository Structure
+
+- `main.py`: The core FastAPI engine and Dynamic Route Registry.
+- `storage.py`: Atomic JSON persistence layer.
+- `exec_query.py`: Safe SQL execution engine with transaction support.
+- `frontend/`: Source code for the modern React management dashboard.
+- `sample.db`: A pre-configured SQLite database for immediate testing.
+
+---
+
+## 🧪 Testing
+
+We provide a comprehensive test suite to ensure stability across environments:
 
 ```powershell
-$env:METADATA_DIR = 'C:\temp\db_api_test_metadata'
-```
-
-Create an admin API key (one-time)
----------------------------------
-Run the included helper to generate and store an admin API key hash. The script prints the plaintext token once — store it safely.
-
-```powershell
-python .\scripts\create_admin_key.py
-```
-
-Testing the project
--------------------
-Use an isolated `METADATA_DIR` for tests to avoid clobbering development metadata (see above).
-
-Run unit tests and the integration test suite with pytest:
-
-```powershell
-pytest -q
-```
-
-Run only the integration test (pytest will try HTTP+TestClient then fall back to headless when needed):
-
-```powershell
+# Run the integration suite
 pytest -q tests/test_integration_fastapi.py
-```
 
-If FastAPI or TestClient imports fail in your environment, run the headless e2e runner which does not require the HTTP stack:
-
-```powershell
+# Run headless E2E (skips HTTP stack if needed)
 python .\scripts\headless_e2e.py
 ```
 
-Full HTTP-driven e2e
---------------------
-To exercise the full HTTP path (requires FastAPI + uvicorn import working in your environment):
+---
 
-```powershell
-python .\scripts\e2e_test.py
-```
+## 📄 License
+This project is for protoytpe purpose. See repository metadata for details.
 
-Troubleshooting
----------------
-- If pytest crashes during import with an error like:
+---
 
-		TypeError: ForwardRef._evaluate() missing 1 required keyword-only argument: 'recursive_guard'
-
-	This often indicates a FastAPI / Pydantic version incompatibility or an import-time forward-ref resolution issue. Workarounds:
-
-	1) Use the headless e2e path: `python .\scripts\headless_e2e.py` — this exercises core logic without importing FastAPI.
-	2) Create a clean virtual environment and install the pinned `requirements.txt`. If necessary, try different compatible versions of FastAPI/Pydantic.
-
-- If you want to force the headless flow during tests, run the headless script directly or adjust test environment variables to skip the HTTP path.
-
-Notes and next steps
---------------------
-- Metadata JSON files are written atomically to avoid partial writes.
-- Consider the following improvements for future work:
-	- Harden log redaction and secure handling of secrets before production use.
-	- Add more unit tests around parameter validation edge cases (lengths, required/optional semantics).
-	- Add a small PowerShell wrapper that creates a temporary `METADATA_DIR` and runs the integration test for convenience.
-
-Contributing
-------------
-Pull requests are welcome. If you add features that change metadata shape, please include migration notes and tests. When editing public APIs, add or update corresponding tests.
-
-License
--------
-See repository metadata or add a LICENSE file as needed.
-
-Enjoy exploring the code!
+*Built with ❤️ for PM / Pre-slaes/ support who hate integrating dfatabsed each time for new integration.*

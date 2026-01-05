@@ -18,14 +18,26 @@ import param_model
 
 app = FastAPI(title="DB API Admin")
 
-# serve static files under /static and root index
-app.mount("/static", StaticFiles(directory="./static"), name="static")
+# serve React frontend if built, else fallback
+if os.path.exists("frontend/dist"):
+    # Mount assets specifically for Vite's structure
+    app.mount("/assets", StaticFiles(directory="frontend/dist/assets"), name="assets")
+    
+    # Generic static files in dist root (like vite.svg, favicon)
+    app.mount("/dist", StaticFiles(directory="frontend/dist"), name="dist")
 
+    @app.get("/")
+    def index():
+        return HTMLResponse(open("frontend/dist/index.html", encoding="utf-8").read(), status_code=200)
+else:
+    if os.path.exists("static"):
+        app.mount("/static", StaticFiles(directory="./static"), name="static")
 
-@app.get("/")
-def index():
-    html = open("static/index.html", "r", encoding="utf-8").read()
-    return HTMLResponse(content=html, status_code=200)
+    @app.get("/")
+    def index():
+        if os.path.exists("static/index.html"):
+            return HTMLResponse(open("static/index.html", encoding="utf-8").read(), status_code=200)
+        return {"message": "No frontend found. Build the React app or check static/ folder."}
 
 
 # runtime route registry (in-memory)
@@ -148,6 +160,15 @@ def preview_query(payload: PreviewIn, admin=Depends(require_admin)):
     return res
 
 
+@app.get("/admin/drivers/odbc")
+def get_odbc_drivers(admin=Depends(require_admin)):
+    try:
+        import pyodbc
+        return pyodbc.drivers()
+    except Exception:
+        return []
+
+
 class MappingIn(BaseModel):
     query_id: str
     connector_id: str
@@ -191,11 +212,11 @@ def deploy_mapping(mapping_id: str, admin=Depends(require_admin)):
         Model = None
 
     # create handler
-    async def handler(request: Request, **path_params):
+    async def handler(request: Request):
         # gather params
         data = {}
         # path params
-        data.update(path_params)
+        data.update(request.path_params)
         # query params
         for k, v in request.query_params.items():
             if k not in data:
@@ -296,7 +317,6 @@ def deploy_mapping(mapping_id: str, admin=Depends(require_admin)):
 
     return {"id": mapping_id, "status": "deployed", "path": path, "method": method}
 
-
 @app.post("/admin/mappings/{mapping_id}/undeploy")
 def undeploy_mapping(mapping_id: str, admin=Depends(require_admin)):
     # find mapping
@@ -341,6 +361,16 @@ def undeploy_mapping(mapping_id: str, admin=Depends(require_admin)):
 
     return {"id": mapping_id, "status": "undeployed"}
 
+@app.delete("/admin/mappings/{mapping_id}")
+def remove_mapping(mapping_id: str, admin=Depends(require_admin)):
+    # first undeploy if deployed
+    undeploy_mapping(mapping_id, admin)
+    
+    ok = storage.delete_mapping(mapping_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="mapping not found")
+    return {"status": "deleted", "id": mapping_id}
+
 
 @app.get("/admin/logs/{request_id}")
 def get_log(request_id: str, admin=Depends(require_admin)):
@@ -365,28 +395,15 @@ def register_deployed_routes(app_instance: FastAPI):
 
         # build model (reuse same logic)
         params_json = mapping.get("params_json", [])
-        from pydantic import create_model
-        fields = {}
-        type_map = {"string": (str, ...), "integer": (int, ...), "number": (float, ...), "boolean": (bool, ...)}
-        for p in params_json:
-            fname = p.get("name")
-            ptype = p.get("type")
-            required = p.get("required", True)
-            default = p.get("default", ... if required else None)
-            tp = type_map.get(ptype, (str, ...))
-            if required:
-                fields[fname] = (tp[0], default)
-            else:
-                fields[fname] = (tp[0], None)
         try:
-            Model = create_model("ParamsModel_" + mid, **fields)
+            Model = param_model.build_params_model("ParamsModel_" + mid, params_json)
         except Exception:
             Model = None
 
         # create handler similar to deploy
-        async def handler(request: Request, **path_params):
+        async def handler(request: Request):
             data = {}
-            data.update(path_params)
+            data.update(request.path_params)
             for k, v in request.query_params.items():
                 if k not in data:
                     data[k] = v
@@ -479,6 +496,14 @@ def add_query(payload: QueryIn, admin=Depends(require_admin)):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"id": qid}
+
+
+@app.delete("/admin/queries/{query_id}")
+def remove_query(query_id: str, admin=Depends(require_admin)):
+    ok = storage.delete_query(query_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="query not found")
+    return {"status": "deleted", "id": query_id}
 
 
 @app.get("/admin/queries")

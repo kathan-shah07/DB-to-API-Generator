@@ -181,36 +181,56 @@ def write_queries_atomic(data: list):
     os.replace(tmp, QUERIES_FILE)
 
 
-def add_query_entry(connector_id: str, name: str, sql_text: str, is_proc: bool = False, description: str | None = None) -> str:
-    """Add a saved query entry. Validates connector exists and basic structure of sql_text for procs."""
+def add_query_entry(connector_id: str, name: str, sql_text: str, is_proc: bool = False, description: str | None = None):
+    ensure_metadata_dir()
     # ensure connector exists
     if not get_connector_by_id(connector_id):
         raise ValueError("connector_id not found")
 
-    if not sql_text or not sql_text.strip():
-        raise ValueError("sql_text is required")
-
-    # basic validation for stored-proc flag
-    if is_proc:
-        low = sql_text.strip().lower()
-        if not (low.startswith("call") or low.startswith("exec") or "procedure" in low):
-            # allow creation but warn via error
-            raise ValueError("is_proc=true but sql_text does not look like a stored procedure call")
-
     queries = read_queries()
-    new_id = uuid4().hex
-    entry = {
-        "id": new_id,
+    qid = str(uuid4())
+    record = {
+        "id": qid,
         "connector_id": connector_id,
         "name": name,
         "sql_text": sql_text,
-        "is_proc": bool(is_proc),
-        "description": description,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "is_proc": is_proc,
+        "description": description or "",
+        "created_at": datetime.now(timezone.utc).isoformat()
     }
-    queries.append(entry)
+    queries.append(record)
     write_queries_atomic(queries)
-    return new_id
+    return qid
+
+
+def delete_query(query_id: str):
+    """Delete query and mark any referencing mappings as invalid."""
+    ensure_metadata_dir()
+    queries = read_queries()
+    idx = -1
+    for i, q in enumerate(queries):
+        if q.get("id") == query_id:
+            idx = i
+            break
+    if idx == -1:
+        return False
+    
+    queries.pop(idx)
+    write_queries_atomic(queries)
+
+    # Invalidate mappings referencing this query
+    if os.path.exists(MAPPINGS_FILE):
+        mappings = read_mappings()
+        changed = False
+        for m in mappings:
+            if m.get("query_id") == query_id:
+                m["invalidated"] = True
+                m["deployed"] = False
+                changed = True
+        if changed:
+            write_mappings_atomic(mappings)
+
+    return True
 
 
 # --- mappings storage ---
@@ -297,16 +317,32 @@ def add_mapping_entry(query_id: str, connector_id: str, path: str, method: str, 
     return new_id
 
 
-def set_mapping_deployed(mapping_id: str, deployed: bool = True) -> dict | None:
-    """Mark a mapping as deployed/undeployed and return the updated mapping."""
+def set_mapping_deployed(mapping_id: str, deployed: bool = True):
+    ensure_metadata_dir()
     mappings = read_mappings()
-    for i, m in enumerate(mappings):
+    for m in mappings:
         if m.get("id") == mapping_id:
-            m["deployed"] = bool(deployed)
-            mappings[i] = m
+            m["deployed"] = deployed
             write_mappings_atomic(mappings)
             return m
     return None
+
+
+def delete_mapping(mapping_id: str):
+    """Delete a mapping entry."""
+    ensure_metadata_dir()
+    mappings = read_mappings()
+    idx = -1
+    for i, m in enumerate(mappings):
+        if m.get("id") == mapping_id:
+            idx = i
+            break
+    if idx == -1:
+        return False
+    
+    mappings.pop(idx)
+    write_mappings_atomic(mappings)
+    return True
 
 
 def append_log(record: dict) -> None:
