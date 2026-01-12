@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DB-to-API Generator Demo Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-color: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.3);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --code-bg: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-weight: 700;
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--accent-color);
+            padding-left: 1rem;
+            color: var(--accent-color);
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: linear-gradient(to right, var(--border-color), transparent);
+            margin: 3rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: rgba(56, 189, 248, 0.1);
+            text-align: left;
+            padding: 1rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: var(--code-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 6px;
+            font-size: 0.9em;
+            color: #e2e8f0;
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        pre code {
+            padding: 0;
+            background: none;
+            color: #7dd3fc;
+        }
+
+        .emoji {
+            font-style: normal;
+        }
+
+        strong {
+            color: var(--text-primary);
+        }
+
+        ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            background: var(--accent-glow);
+            color: var(--accent-color);
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .container {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>DB-to-API Generator Demo Guide</h1>
+        <p>This guide walks you through the complete flow of connecting a database, creating queries, and deploying live
+            REST APIs using the <code>sample.db</code> provided.</p>
+
+        <h2><span class="emoji">🚀</span> Getting Started</h2>
+        <ol>
+            <li><strong>Launch the App</strong>: Run <code>run_ui.ps1</code> and open
+                <code>http://127.0.0.1:8000</code>.</li>
+            <li><strong>Authenticate</strong>: Copy the <code>ADMIN_TOKEN</code> from your terminal, paste it into the
+                top-right "Admin Key" field in the UI, and click <strong>Save</strong>.</li>
+        </ol>
+
+        <hr>
+
+        <h2><span class="emoji">🛠</span> Step 1: Connect to Database</h2>
+        <p><span class="tag">Tab: Connectors</span></p>
+        <p>Select your database type from the toggle bar and use the following demo inputs:</p>
+
+        <h3>Option A: SQLite (Quickest)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Internal Name</strong></td>
+                    <td><code>SQLite-Demo</code></td>
+                </tr>
+                <tr>
+                    <td><strong>SQLite File Path</strong></td>
+                    <td><code>sample.db</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Action</strong></td>
+                    <td>Click <strong>Add Database Connector</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Option B: Microsoft SQL Server (MSSQL)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Internal Name</strong></td>
+                    <td><code>MSSQL-Server</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Host / Address</strong></td>
+                    <td><code>127.0.0.1</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Port</strong></td>
+                    <td><code>1433</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Database Name</strong></td>
+                    <td><code>SalesDB</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Username</strong></td>
+                    <td><code>sa</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Password</strong></td>
+                    <td><code>YourPassword123</code></td>
+                </tr>
+                <tr>
+                    <td><strong>ODBC Driver</strong></td>
+                    <td>Select from dropdown (e.g. <code>ODBC Driver 17 for SQL Server</code>)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <hr>
+
+        <h2><span class="emoji">🔍</span> Step 2: Define Queries</h2>
+        <p><span class="tag">Tab: Queries</span></p>
+
+        <h3>Query A: List All Users</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Input Value</th>
+                    <th>Expected Output</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Connector</strong></td>
+                    <td>Select <code>MainDB</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Query Name</strong></td>
+                    <td><code>GetAllUsers</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>SQL Query</strong></td>
+                    <td><code>SELECT * FROM users</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Action</strong></td>
+                    <td>Click <strong>Preview</strong></td>
+                    <td>Data table shows user names, emails, etc.</td>
+                </tr>
+                <tr>
+                    <td><strong>Action</strong></td>
+                    <td>Click <strong>Save</strong></td>
+                    <td>"GetAllUsers" appears in the "Saved Queries" list</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Query B: User Search (With Parameters)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Input Value</th>
+                    <th>Expected Output</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Query Name</strong></td>
+                    <td><code>GetUserById</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>SQL Query</strong></td>
+                    <td><code>SELECT * FROM users WHERE id = :uid</code></td>
+                    <td>"Preview Parameters" box appears with <code>uid</code> input</td>
+                </tr>
+                <tr>
+                    <td><strong>Parameter Value</strong></td>
+                    <td>Enter <code>1</code> in the <code>uid</code> box</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Action</strong></td>
+                    <td>Click <strong>Preview</strong></td>
+                    <td>Only the user with ID 1 is shown in the results</td>
+                </tr>
+                <tr>
+                    <td><strong>Action</strong></td>
+                    <td>Click <strong>Save</strong></td>
+                    <td>Saved to list</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Query C: Add New User (POST)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Input Value</th>
+                    <th>Expected Output</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Query Name</strong></td>
+                    <td><code>CreateUser</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>SQL Query</strong></td>
+                    <td><code>INSERT INTO users (name, email) VALUES (:name, :email)</code></td>
+                    <td>Parameters <code>name</code> and <code>email</code> appear</td>
+                </tr>
+                <tr>
+                    <td><strong>Action</strong></td>
+                    <td>Click <strong>Save</strong></td>
+                    <td>Saved to list</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Query D: Update User (PUT)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Input Value</th>
+                    <th>Expected Output</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Query Name</strong></td>
+                    <td><code>UpdateUser</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>SQL Query</strong></td>
+                    <td><code>UPDATE users SET name = :name, email = :email WHERE id = :uid</code></td>
+                    <td>Parameters <code>name</code>, <code>email</code>, <code>uid</code> appear</td>
+                </tr>
+                <tr>
+                    <td><strong>Action</strong></td>
+                    <td>Click <strong>Save</strong></td>
+                    <td>Saved to list</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Query E: Delete User (DELETE)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Input Value</th>
+                    <th>Expected Output</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Query Name</strong></td>
+                    <td><code>DeleteUser</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>SQL Query</strong></td>
+                    <td><code>DELETE FROM users WHERE id = :uid</code></td>
+                    <td>Parameter <code>uid</code> appears</td>
+                </tr>
+                <tr>
+                    <td><strong>Action</strong></td>
+                    <td>Click <strong>Save</strong></td>
+                    <td>Saved to list</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <hr>
+
+        <h2><span class="emoji">🌐</span> Step 3: Create & Deploy APIs</h2>
+        <p><span class="tag">Tab: API Mappings</span></p>
+
+        <h3>API 1: Public Users List</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Input Value</th>
+                    <th>Expected Output</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Source Query</strong></td>
+                    <td><code>GetAllUsers</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Method</strong></td>
+                    <td><code>GET</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Path</strong></td>
+                    <td><code>/api/v1/users</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Auth Required</strong></td>
+                    <td>Uncheck</td>
+                    <td>API will be public</td>
+                </tr>
+                <tr>
+                    <td><strong>Action</strong></td>
+                    <td>Click <strong>Save & Deployed</strong></td>
+                    <td>Entry appears in "Live Endpoints" with <strong>GET</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>API 2: Secure User Detail (Nested Path)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Input Value</th>
+                    <th>Expected Output</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Source Query</strong></td>
+                    <td><code>GetUserById</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Method</strong></td>
+                    <td><code>GET</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Path</strong></td>
+                    <td><code>/api/user/:uid</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Param Builder</strong></td>
+                    <td>Set <code>uid</code> Location to <strong>Path</strong></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Action</strong></td>
+                    <td>Click <strong>Save & Deployed</strong></td>
+                    <td>URL automatically translates to <code>/api/user/{uid}</code></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>API 3: Create User (POST)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Input Value</th>
+                    <th>Expected Output</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Source Query</strong></td>
+                    <td><code>CreateUser</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Method</strong></td>
+                    <td><code>POST</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Path</strong></td>
+                    <td><code>/api/v1/users</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Param Builder</strong></td>
+                    <td>Set <code>name</code> and <code>email</code> Location to <strong>Body</strong></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Action</strong></td>
+                    <td>Click <strong>Save & Deployed</strong></td>
+                    <td>Endpoint live</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>API 4: Edit User (PUT)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Input Value</th>
+                    <th>Expected Output</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Source Query</strong></td>
+                    <td><code>UpdateUser</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Method</strong></td>
+                    <td><code>PUT</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Path</strong></td>
+                    <td><code>/api/user/:uid</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Param Builder</strong></td>
+                    <td><code>uid</code> -> <strong>Path</strong>, <code>name</code>/<code>email</code> ->
+                        <strong>Body</strong></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Action</strong></td>
+                    <td>Click <strong>Save & Deployed</strong></td>
+                    <td>Endpoint live</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>API 5: Remove User (DELETE)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Input Value</th>
+                    <th>Expected Output</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Source Query</strong></td>
+                    <td><code>DeleteUser</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Method</strong></td>
+                    <td><code>DELETE</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Path</strong></td>
+                    <td><code>/api/user/:uid</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Param Builder</strong></td>
+                    <td>Set <code>uid</code> Location to <strong>Path</strong></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Action</strong></td>
+                    <td>Click <strong>Save & Deployed</strong></td>
+                    <td>Endpoint live</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <hr>
+
+        <h2><span class="emoji">🧪</span> Step 4: Testing the Output</h2>
+        <p>Open a terminal (PowerShell) and run these commands to verify your live APIs.</p>
+
+        <h3>1. Test Public List</h3>
+        <pre><code>Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/users" -Method Get</code></pre>
+        <p><strong>Expected Output:</strong> A JSON array of all users from the database.</p>
+
+        <h3>2. Test Secure Parameterized Path</h3>
+        <pre><code>Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/user/1" -Method Get</code></pre>
+        <p><strong>Expected Output:</strong> JSON object containing details for User ID 1.</p>
+
+        <h3>3. Test Create (POST)</h3>
+        <pre><code>$body = @{ name="New Demo User"; email="demo@example.com" } | ConvertTo-Json
+Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/users" -Method Post -Body $body -ContentType "application/json"</code></pre>
+
+        <h3>4. Test Update (PUT)</h3>
+        <pre><code>$body = @{ name="Updated Name"; email="updated@example.com" } | ConvertTo-Json
+Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/user/1" -Method Put -Body $body -ContentType "application/json"</code></pre>
+
+        <h3>5. Test Delete (DELETE)</h3>
+        <pre><code>Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/user/2" -Method Delete</code></pre>
+
+        <hr>
+
+        <h2><span class="emoji">🧹</span> Step 5: Lifecycle Management</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Action</th>
+                    <th>Expected Output</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Undeploy</strong></td>
+                    <td>Click <strong>Undeploy</strong> on a mapping</td>
+                    <td>The API immediately returns <code>410 Gone</code> if hit from terminal.</td>
+                </tr>
+                <tr>
+                    <td><strong>Delete Mapping</strong></td>
+                    <td>Click the 🗑️ icon on a mapping</td>
+                    <td>Configuration is removed; route is cleared from memory.</td>
+                </tr>
+                <tr>
+                    <td><strong>Delete Query</strong></td>
+                    <td>Click the 🗑️ icon in Queries list</td>
+                    <td>Query is removed. Any mapping using it is auto-disabled.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <hr>
+
+        <h2><span class="emoji">💡</span> Troubleshooting</h2>
+        <ul>
+            <li><strong>401 Unauthorized</strong>: Ensure you defined the mapping as "Public" OR you are passing the
+                admin key in headers for secure endpoints.</li>
+            <li><strong>Binding Error</strong>: Always ensure your SQL parameter names (e.g., <code>:id</code>) exactly
+                match the names in the <strong>Parameter Builder</strong> in the Mappings tab.</li>
+        </ul>
+    </div>
+</body>
+
+</html>

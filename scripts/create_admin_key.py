@@ -9,10 +9,11 @@ Outputs the token to stdout. Save it now; it will not be stored in plaintext.
 import os
 import sys
 
-# Ensure we can import storage from project
+# Ensure we can import storage from project backend folder
 proj_root = os.path.dirname(os.path.dirname(__file__))
-if proj_root not in sys.path:
-    sys.path.insert(0, proj_root)
+backend_dir = os.path.join(proj_root, "backend")
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
 
 from storage import add_api_key_entry
 
