@@ -2,7 +2,7 @@
 
 **Transform your raw databases into secure, documented, and validated REST APIs in seconds.**
 
-DB-to-API Generator is a low-code platform built with **FastAPI** and **React** that allows developers to connect to multiple database types (MSSQL, PostgreSQL, MySQL, SQLite), define parameterized SQL queries, and deploy them as live HTTP endpoints without writing any backend code.
+DB-to-API Generator is a low-code platform built with **FastAPI** and **React** that allows developers to connect to multiple database types, define parameterized SQL queries, and deploy them as live HTTP endpoints without writing any backend code.
 
 ---
 
@@ -12,7 +12,7 @@ Explore our specialized guides to get the most out of the platform:
 
 *   [**🛠 Installation Guide**](./INSTALLATION.md) - Step-by-step setup for Windows, macOS, and Linux.
 *   [**🏗 System Architecture**](./ARCHITECTURE.md) - Deep dive into how the dynamic route engine and storage layer work.
-*   [**🔍 Demo & Walkthrough**](./DEMO_GUIDE.md) - A full tutorial on connecting a database and creating your first API.
+*   [**🔍 Demo & Walkthrough**](./demo/DEMO_GUIDE.md) - A full tutorial on connecting a database and creating your first API.
 
 ---
 
@@ -34,12 +34,12 @@ Explore our specialized guides to get the most out of the platform:
 
 1.  **Initialize Environment**:
     ```powershell
-    powershell -ExecutionPolicy Bypass -File .\init_env.ps1
+    powershell -ExecutionPolicy Bypass -File .\setup\init_env.ps1
     ```
 
 2.  **Launch the Dashboard**:
     ```powershell
-    powershell -ExecutionPolicy Bypass -File .\run_ui.ps1
+    powershell -ExecutionPolicy Bypass -File .\setup\run_ui.ps1
     ```
 
 3.  **Login**: Copy the `ADMIN_TOKEN` printed in your terminal and paste it into the UI.
@@ -48,31 +48,30 @@ Explore our specialized guides to get the most out of the platform:
 
 ## 📁 Repository Structure
 
-- `main.py`: The core FastAPI engine and Dynamic Route Registry.
-- `storage.py`: Atomic JSON persistence layer.
-- `exec_query.py`: Safe SQL execution engine with transaction support.
+- `backend/`: The core FastAPI engine and Dynamic Route Registry.
 - `frontend/`: Source code for the modern React management dashboard.
-- `sample.db`: A pre-configured SQLite database for immediate testing.
+- `setup/`: Setup scripts and dependency lists.
+- `demo/`: Sample collections and visual guides.
 
 ---
 
 ## 🧪 Testing
 
-We provide a comprehensive test suite to ensure stability across environments:
+We provide automated scripts to ensure stability across environments:
 
 ```powershell
-# Run the integration suite
-pytest -q tests/test_integration_fastapi.py
-
-# Run headless E2E (skips HTTP stack if needed)
+# Run headless E2E (Full lifecycle test)
 python .\scripts\headless_e2e.py
+
+# Run standard E2E test
+python .\scripts\e2e_test.py
 ```
 
 ---
 
 ## 📄 License
-This project is for protoytpe purpose. See repository metadata for details.
+This project is for prototype purposes. See repository metadata for details.
 
 ---
 
-*Built with ❤️ for PM / Pre-slaes/ support who hate integrating dfatabsed each time for new integration.*
+*Built with ❤️ for Engineers and Architects who want to simplify data exposure.*
